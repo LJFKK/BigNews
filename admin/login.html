@@ -61,7 +61,69 @@
       </div>
     </div>
   </div>
-  <script src="./js/login.js"></script>
+  <!-- 模态框 -->
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+              aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">提示</h4>
+        </div>
+        <div class="modal-body">
+          <p>One fine body&hellip;</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+  <!-- <script src="./js/login.js"></script> -->
+  <script>
+    $(function () {
+      //登录
+      $('.input_sub').on('click', function (e) {
+        e.preventDefault();
+        var username = $('.input_txt').val().trim();
+        var password = $('.input_pass').val().trim();
+        //非空判断
+        if (username == '' || password == '') {
+          //调用模态框
+          $('#myModal .modal-body').text('用户名或密码不能为空');
+          $('#myModal').modal()
+          return;
+        }
+
+        //发送ajax请求
+        $.ajax({
+          type: 'post',
+          url: 'http://localhost:8080/api/v1/admin/user/login',
+          data: {
+            username: username, password: password
+          },
+          success: function (bd) {
+            //注册模态框消失事件
+            //location.href = './index.html';
+            //模态框
+            if (bd.code == 200) {
+
+              $('#myModal .modal-body').text('登录成功');
+              $('#myModal').modal();
+              $('#myModal').on('hidden.bs.modal', function (e) {
+                console.log(bd.token);
+                localStorage.setItem('token', bd.token);
+                location.href = './index.html';
+              });
+            }
+          }
+        });
+
+      })
+
+    });
+  </script>
 </body>
 
 </html>

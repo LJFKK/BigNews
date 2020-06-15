@@ -68,6 +68,26 @@
             </form>
         </div>
     </div>
+    <script src="./js/http.js"></script>
+    <script>
+        $.ajax({
+            url: BigNew.user_detail,
+            type: 'get',
+            success: function (bd) {
+                if (bd.code == 200) {
+                    //显示个人信息
+                    /* nickname: "李思思"
+                        userPic: "http://localhost:8080/icon.jpg"
+                        email: "sisili@qq.com"
+                        password: "123456"
+                        username: "admin"
+                    */
+                    console.log(bd);
+
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

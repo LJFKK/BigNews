@@ -81,6 +81,7 @@
     </div><!-- /.modal-dialog -->
   </div><!-- /.modal -->
   <!-- <script src="./js/login.js"></script> -->
+  <script src="./js/http.js"></script>
   <script>
     $(function () {
       //登录
@@ -99,7 +100,7 @@
         //发送ajax请求
         $.ajax({
           type: 'post',
-          url: 'http://localhost:8080/api/v1/admin/user/login',
+          url: BigNew.user_login,//'http://localhost:8080/api/v1/admin/user/login',
           data: {
             username: username, password: password
           },
@@ -109,13 +110,13 @@
             //模态框
             if (bd.code == 200) {
 
-              $('#myModal .modal-body').text('登录成功');
+              /* $('#myModal .modal-body').text('登录成功');
               $('#myModal').modal();
-              $('#myModal').on('hidden.bs.modal', function (e) {
-                console.log(bd.token);
-                localStorage.setItem('token', bd.token);
-                location.href = './index.html';
-              });
+              $('#myModal').on('hidden.bs.modal', function (e) { */
+              console.log(bd.token);
+              localStorage.setItem('token', bd.token);
+              location.href = './index.html';
+              //});
             }
           }
         });

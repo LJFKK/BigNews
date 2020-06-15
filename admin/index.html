@@ -19,8 +19,8 @@
     <div class="sider">
         <a href="#" class="logo"><img src="images/logo02.png" alt="logo"></a>
         <div class="user_info">
-            <img src="images/2.jpg" alt="person">
-            <span>欢迎&nbsp;&nbsp;李思思</span>
+            <img src="images/2.jpg" class="picu" alt="person">
+            <span>欢迎&nbsp;&nbsp;<i style="margin:0;"></i></span>
             <b>管理员</b>
         </div>
         <!-- 左侧导航栏 -->
@@ -45,7 +45,7 @@
         <div class="header_bar">
             <div class="user_center_link">
                 <a href="./user.html" target="main_frame">个人中心</a>
-                <img src="images/2.jpg" alt="person">
+                <img src="images/2.jpg" class="picu" alt="person">
                 <a href="javascript:void(0)" class="logout"><i class="iconfont icon-tuichu"></i> 退出</a>
             </div>
         </div>
@@ -54,5 +54,45 @@
 
         </div>
     </div>
+    <script src="./js/http.js"></script>
+    <script>
+        $(function () {
+            //页面加载获取用户头像与用户名
+            //获取token查询当前用户登录信息
+            /* var xhr = new XMLHttpRequest();
+            xhr.open('get', 'http://localhost:8080/api/v1/admin/user/info');
+            xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
+            xhr.onload = function () {
+                console.log(document.querySelector('.picu').src);
+
+                if (JSON.parse(xhr.response).code == 200) {
+                    document.querySelector('.user_info span i').innerHTML = JSON.parse(xhr.response).data.nickname;
+
+                    $(document.querySelectorAll('.picu')).attr('src', JSON.parse(xhr.response).data.userPic);
+                }
+            };
+            xhr.send(); */
+            $.ajax({
+                url: BigNew.user_info,//'http://localhost:8080/api/v1/admin/user/info',
+                type: 'get',
+                /* headers:{
+                    Authorization:
+                } */
+                success: function (bd) {
+                    $('.user_info span i').html(bd.data.nickname);
+                    $('.picu').attr('src', bd.data.userPic);
+                }
+            });
+            $('.logout').on('click', function (e) {
+                e.preventDefault();
+                if (confirm('你确定退出吗')) {
+                    localStorage.removeItem('token');
+                    window.location.href = "./login.html";
+                }
+            });
+        });
+
+    </script>
 </body>
+
 </html>

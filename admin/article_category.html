@@ -147,15 +147,13 @@
                 var categoryName = $('#recipient-name').val().trim(); //文章分类 名称
                 var categorySlug = $('#message-text').val().trim(); //文章分类 别名
                 var categoryId = $('#categoryId').val().trim(); //文章分类 id
+                var fds = $('form').serialize();
                 if ($(this).hasClass('btn-primary')) {
                     //新增
                     $.ajax({
                         type: 'post',
                         url: BigNew.category_add,
-                        data: {
-                            name: categoryName,
-                            slug: categorySlug
-                        },
+                        data: fds,
                         success: function (bd) {
                             if (bd.code == 201) {
                                 //更新页面中的数据
@@ -172,11 +170,7 @@
                     $.ajax({
                         type: 'post',
                         url: BigNew.category_edit,
-                        data: {
-                            id: categoryId,
-                            name: categoryName,
-                            slug: categorySlug
-                        },
+                        data: fds,
                         //传递的数据参数,是jQuery使用他的serialize()方法帮我们获取到的数据. 
                         //data: data,
                         success: function (backData) {

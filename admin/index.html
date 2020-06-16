@@ -98,6 +98,13 @@
             });
             $('#lul').on('click', function () {
                 $('.level02').toggle();
+            });
+            $('.menu>div').on('click', function () {
+                $(this).addClass('active').siblings('div').removeClass('active');
+                if ($(this).index() == 1) {
+                    $(this).siblings('ul').find('a').get(0).click();
+
+                }
             })
         });
 

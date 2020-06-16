@@ -69,27 +69,76 @@
     </div>
     <script src="./js/http.js"></script>
     <script>
-        $.ajax({
-            url: BigNew.user_detail,
-            type: 'get',
-            success: function (bd) {
-                if (bd.code == 200) {
-                    //显示个人信息
-                    /* nickname: "李思思"
-                        userPic: "http://localhost:8080/icon.jpg"
-                        email: "sisili@qq.com"
-                        password: "123456"
-                        username: "admin"
-                    */
-                    $('#uname').val(bd.data.username);
-                    $('#unick').val(bd.data.nickname);
-                    $('#uemail').val(bd.data.email);
-                    $('#upwd').val(bd.data.password);
-                    $('.user_pic').attr('src', bd.data.userPic);
-                    console.log(bd);
+        $(function () {
+            //页面进来加载数据
+            $.ajax({
+                url: BigNew.user_detail,
+                type: 'get',
+                success: function (bd) {
+                    if (bd.code == 200) {
+                        //显示个人信息
+                        /* nickname: "李思思"
+                            userPic: "http://localhost:8080/icon.jpg"
+                            email: "sisili@qq.com"
+                            password: "123456"
+                            username: "admin"
+                        */
+                        $('#uname').val(bd.data.username);
+                        $('#unick').val(bd.data.nickname);
+                        $('#uemail').val(bd.data.email);
+                        $('#upwd').val(bd.data.password);
+                        $('.user_pic').attr('src', bd.data.userPic);
+                        console.log(bd);
 
+                    }
                 }
-            }
+            });
+            //加载加载图片预览
+            $('#exampleInputFile').on('change', function () {
+                var file = this.files[0];
+                var u = URL.createObjectURL(file);
+                $('.user_pic').attr('src', u);
+            });
+
+            //修改
+            $('.btn-edit').on('click', function (e) {
+                // alert(1);
+                e.preventDefault();
+                //获取表单提交表单
+                var fd = new FormData(document.querySelector('form'));
+                $.ajax({
+                    url: BigNew.user_edit,
+                    type: 'post',
+                    data: fd,
+                    contentType: false,
+                    processData: false,
+                    success: function (bd) {
+                        console.log('ms:' + bd);
+                        if (bd.code == 200) {
+                            alert('修改成功');
+                            parent.window.location.reload();
+                            //1 刷新页面
+                            //2 
+                            //第二种: 发送ajax请求,获取新的个人信息,找到父页面上的标签,内容显示对应的标签上
+                            /* $.ajax({
+                                type: 'get',
+                                url: BigNew.user_info, //使用的是http.js中的接口地址
+                                success: function (backData) {
+                                    //console.log(backData);
+                                    if (backData.code == 200) {
+                                        //1.2 个人信息显示在页面上. 
+                                        parent.$('.user_info>span>i').text(backData.data.nickname);
+                                        parent.$('.user_info>img').attr('src', backData.data.userPic);
+                                        parent.$('.user_center_link>img').attr('src',backData.data.userPic);
+                                    }
+                                }
+                            }); */
+                        }
+                    }
+                });
+
+            });
+
         });
     </script>
 </body>

@@ -13,6 +13,9 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
+    <!-- 引入bootstrapjs 和 分页插件js -->
+    <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+    <script src="./libs/jquery.twbsPagination.js"></script>
 </head>
 
 <body>
@@ -69,6 +72,7 @@
                 </tbody>
             </table>
             <div class="row text-center">
+                <ul class="pagination" id="pagination"></ul>
             </div>
         </div>
     </div>
@@ -80,6 +84,22 @@
     {{each data}}
         <option value="{{$value.id}}">{{$value.name}}</option>
     {{/each}}
+</script>
+<!-- 模板文章列表 -->
+<script id="list-temp" type="text/html">
+{{each data.data v}}
+    <tr>
+        <td>{{v.title}}</td>
+        <td>{{v.author}}</td>
+        <td>{{v.category}}</td>
+        <td class="text-center">{{v.date}}</td>
+        <td class="text-center">{{v.state}}</td>
+        <td class="text-center">
+            <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
+            <a href="javascript:void(0);" data-id = "{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
+        </td>
+    </tr>
+{{/each}}
 </script>
 <script>
     $(function () {
@@ -101,6 +121,55 @@
             });
         }
         getatc();
+
+        //页面加载获取默认分类的文章列表
+        /* pagesnumber总页数pagenumber当前页dataarray文章数据数组，
+        其中每个成员包含字段：
+        id: number类型，文章id
+        title:  string类型，文章标题
+        intro: string类型，文章文字内容截取
+        cover: string类型，文章封面图片地址
+        type: string类型，文章类型
+        read: number类型，文章阅读次数
+        comment: number类型，文章评论次数
+        date:string类型， 文章发布时间
+        state:string类型，文章状态 */
+        function query() {
+            $.ajax({
+                type: 'get',
+                url: BigNew.article_query,
+                data: {
+                    type: $('#selCategory').val(),
+                    state: $('#selStatus').val(),
+                    page: 1,
+                    perpage: 6
+                },
+                success: function (bd) {
+                    if (bd.code = 200) {
+                        var resH = template('list-temp', bd);
+                        $('tbody').html(resH);
+                    }
+                }
+            });
+        }
+        query();
+
+        //筛选功能
+        $('#btnSearch').on('click', function (e) {
+            e.preventDefault();
+            query();
+        })
+
+        /* 分页功能 */
+        window.pagObj = $('#pagination').twbsPagination({
+            totalPages: 35,
+            visiblePages: 10,
+            onPageClick: function (event, page) {
+                console.info(page + ' (from options)');
+            }
+        }).on('page', function (event, page) {
+            console.info(page + ' (from event listening)');
+        });
     });
 </script>
 

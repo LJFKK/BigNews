@@ -75,7 +75,9 @@
                 }
             };
             xhr.send(); */
-            $('.menu').find(':nth-child(0)').click();
+            console.log();
+            $('.menu').find('div a').get(0).click();
+            //$('.menu').find(':nth-child(0) a').click();
             $.ajax({
                 url: BigNew.user_info,//'http://localhost:8080/api/v1/admin/user/info',
                 type: 'get',

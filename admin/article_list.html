@@ -73,6 +73,7 @@
             </table>
             <div class="row text-center">
                 <ul class="pagination" id="pagination"></ul>
+                <p style="display:none;">没有数据</p>
             </div>
         </div>
     </div>
@@ -111,7 +112,7 @@
                 type: 'get',
                 url: BigNew.category_list,
                 success: function (bd) {
-                    console.log(bd);
+                    //console.log(bd);
                     if (bd.code == 200) {
                         //使用模板加载options
                         var atlHtml = template('atl_temp', bd);
@@ -122,54 +123,99 @@
         }
         getatc();
 
-        //页面加载获取默认分类的文章列表
-        /* pagesnumber总页数pagenumber当前页dataarray文章数据数组，
-        其中每个成员包含字段：
-        id: number类型，文章id
-        title:  string类型，文章标题
-        intro: string类型，文章文字内容截取
-        cover: string类型，文章封面图片地址
-        type: string类型，文章类型
-        read: number类型，文章阅读次数
-        comment: number类型，文章评论次数
-        date:string类型， 文章发布时间
-        state:string类型，文章状态 */
-        function query() {
+        //声明当前页
+        var cp;
+        /* 封装函数发送ajax请求,显示的页码,回调函数 */
+        function getData(cp, callBack) {
             $.ajax({
-                type: 'get',
                 url: BigNew.article_query,
+                type: 'get',
                 data: {
                     type: $('#selCategory').val(),
                     state: $('#selStatus').val(),
-                    page: 1,
-                    perpage: 6
+                    page: cp,
+                    perpage: 3
                 },
                 success: function (bd) {
-                    if (bd.code = 200) {
+                    //查询成功后根据查询到的数据和全局变量当前页cp的对比,判断
+                    //判断是否是只查询,是否是删除以及删除后是否完全没有数据与删除后的总页数需要-1
+                    if (bd.code == 200) {
                         var resH = template('list-temp', bd);
                         $('tbody').html(resH);
+                        //如果没有毁掉函数,并且查询到数据
+                        if (bd.data.data.length != 0 && callBack != null) {
+                            //查询数据,首次渲染分页插件,p标签隐藏,分页插件显示
+                            $('#pagination').show().next('p').hide();
+                            callBack(bd);
+                        }
+                        //如果是第一页并且没有数据,则表示查询不到数据,显示p标签,隐藏分页插件
+                        else if (cp == 1 && bd.data.data.length == 0) {
+                            $('#pagination').hide().next('p').show();
+                        }
+                        //如果删除后查询到的数据少了一页
+                        else if (bd.data.totalPage == cp - 1) {
+                            cp -= 1;
+                            //重绘分页插件
+                            $('#pagination').twbsPagination('changeTotalPages', bd.data.totalPage, cp);
+                        }
                     }
+
                 }
             });
         }
-        query();
+        //页面默认加载,分页点击发送ajax,传参null表示只获取数据
+        getData(1, function (bd) {
+            $('#pagination').twbsPagination({
+                first: '第一页',
+                next: '下一页',
+                prev: '上一页',
+                last: '尾页',
+                startPage: 1,
+                totalPages: bd.data.totalPage,
+                visiblePages: 3,
+                onPageClick: function (event, page) {
+                    cp = page;
+                    console.log(page);
 
-        //筛选功能
-        $('#btnSearch').on('click', function (e) {
-            e.preventDefault();
-            query();
-        })
-
-        /* 分页功能 */
-        window.pagObj = $('#pagination').twbsPagination({
-            totalPages: 35,
-            visiblePages: 10,
-            onPageClick: function (event, page) {
-                console.info(page + ' (from options)');
-            }
-        }).on('page', function (event, page) {
-            console.info(page + ' (from event listening)');
+                    getData(page, null);
+                }
+            });
         });
+        //筛选功能,点击筛选,当前页改为1,发送ajax请求并且重新渲染分页插件
+        $('#btnSearch').on('click', function (e) {
+            //组织默认提交事件
+            e.preventDefault();
+            cp = 1;
+            getData(1, function (bd) {
+                $('#pagination').twbsPagination('changeTotalPages', bd.data.totalPage, cp);
+            });
+
+        });
+        //删除功能
+        $('tbody').on('click', 'a.delete', function () {
+            if (confirm('确认删除?')) {
+                //发送删除请求
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.article_delete,
+                    data: { id: $(this).attr('data-id') },
+                    success: function (bd) {
+                        if (bd.code == 204) {
+                            alert('删除成功');
+                            getData(cp, function (bd) {
+                                $('#pagination').twbsPagination('changeTotalPages', bd.data.totalPage, cp);
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+
+
+
+        return;
+
     });
 </script>
 

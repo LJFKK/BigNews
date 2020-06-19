@@ -144,7 +144,7 @@
                 <h3><i class="fa fa-commenting-o"></i> 最新评论</h3>
                 <ul class="content_list comment_list">
                     <li>
-                        <span>山</span>
+                        <span>山1</span>
                         <b><em>山治</em> 9个月前(08-14)说:</b>
                         <strong>挺会玩的</strong>
                     </li>
@@ -207,9 +207,22 @@
     <!-- 引入模板引擎js文件 -->
     <script src="./js/template-web.js"></script>
     <script src="./js/jquery-1.12.4.min.js"></script>
+    <!-- 当前文章内容模板 -->
     <script id="info" type="text/html">
         {{data.author}} 发布于 {{data.date}}&nbsp;&nbsp;&nbsp;分类: {{data.category}}&nbsp;&nbsp;&nbsp;阅读:
         ({{data.read}})&nbsp;&nbsp;&nbsp;评论: ({{data.comments}})
+    </script>
+    <!-- 当前文章评论模板 -->
+    <script id="comment" type="text/html">
+        {{each data v}}
+        <div class="comment_detail_list">
+            <div class="person_pic fl">{{v.author.substring(0,1)}}</div>
+            <div class="name_time fl"><b>{{v.author}}</b><span>{{v.date}}</span></div>
+            <div class="comment_text fl">
+                {{v.content}}
+            </div>
+        </div>
+        {{/each}}
     </script>
     <script>
         $(function () {
@@ -232,13 +245,13 @@
                         var resHtml = template('info', bd);
                         $('.article_info').html(resHtml);
                         /* 上一页下一页 */
-                        if (bd.data.prev.title == null) {
+                        if (bd.data.prev == null) {
                             $('.article_links').children('a').eq(0).text("没有上一篇");
                         } else {
                             $('.article_links').children('a').eq(0).text(bd.data.prev.title);
                             $('.article_links').children('a').eq(0).attr('href', "./article.html?id=" + bd.data.prev.id);
                         }
-                        if (bd.data.next.title == null) {
+                        if (bd.data.next == null) {
                             $('.article_links').children('a').eq(1).text("没有下一篇");
                         } else {
                             $('.article_links').children('a').eq(1).text(bd.data.next.title);
@@ -247,6 +260,56 @@
                     }
                 }
             });
+
+            //页面进入加载所有评论
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/get_comment',
+                type: 'get',
+                data: "articleId=" + artId,
+                success: function (bd) {
+                    if (bd.code == 200) {
+                        console.log(bd);
+                        //通过模板引擎渲染页面
+                        var resHtml = template('comment', bd);
+                        $('.comment_list_con').html(resHtml);
+                        $('.comment_count').html(bd.data.length + "条评论  ");
+                    }
+                }
+            });
+
+            //发表评论
+            $('.comment_sub').on('click', function (e) {
+                e.preventDefault();
+
+                var author = $('.comment_name').val().trim();
+                var comm = $('.comment_input').val().trim();
+                if (author == "" || comm == "") {
+                    alert('用户名或评论不能为空');
+                    return;
+                }
+                $.ajax({
+                    url: 'http://localhost:8080/api/v1/index/post_comment',
+                    type: 'post',
+                    data: {
+                        author: author,
+                        content: comm,
+                        articleId: artId
+                    },
+                    success: function (bd) {
+                        if (bd.code == 201) {
+                            alert('发表成功,等待审核');
+                            $('.comment_name').val('');
+                            $('.comment_input').val('');
+                            //通过模板引擎渲染页面
+                            // var resHtml = template('comment', bd);
+                            // $('.comment_list_con').html(resHtml);
+                            // $('.comment_count').html(bd.data.length + "条评论  ");
+                        }
+                    }
+                });
+            })
+
+
         });
     </script>
 </body>

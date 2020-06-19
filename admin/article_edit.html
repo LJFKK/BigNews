@@ -160,6 +160,7 @@
                         $('input[name=categoryId]').val(bd.data.categoryId);
                         $('input[name=date]').val(bd.data.date);
                         editor.txt.html(bd.data.content);
+
                     }
                 }
             });
@@ -206,7 +207,6 @@
                     if (bd.code == 200) {
                         alert('发表成功');
                         window.location.href = './article_list.html';
-
                     }
 
                 }

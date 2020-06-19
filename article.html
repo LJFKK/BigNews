@@ -59,8 +59,7 @@
                 当前位置： <a href="#">首页</a> &gt; <a href="#">科技</a> &gt; 文章详情
             </div>
             <h3 class="article_title">马斯克的新花样？连接人脑和电脑的初创公司又筹了一笔钱</h3>
-            <div class="article_info">杰克 发布于 2019-05-08 07:08:46&nbsp;&nbsp;&nbsp;分类: 奇趣事&nbsp;&nbsp;&nbsp;阅读:
-                (98)&nbsp;&nbsp;&nbsp;评论: (0)</div>
+            <div class="article_info">111</div>
             <div class="article_con">
 
                 <p>“上天入地”还不够？硅谷“钢铁侠”马斯克名下一家低调的公司最近又融了一大笔钱。</p>
@@ -208,7 +207,48 @@
     <!-- 引入模板引擎js文件 -->
     <script src="./js/template-web.js"></script>
     <script src="./js/jquery-1.12.4.min.js"></script>
-
+    <script id="info" type="text/html">
+        {{data.author}} 发布于 {{data.date}}&nbsp;&nbsp;&nbsp;分类: {{data.category}}&nbsp;&nbsp;&nbsp;阅读:
+        ({{data.read}})&nbsp;&nbsp;&nbsp;评论: ({{data.comments}})
+    </script>
+    <script>
+        $(function () {
+            //文章详情页
+            var artId = window.location.search.split("=")[1];
+            if (artId == undefined) {
+                window.location.href = './index.html';
+                return;
+            }
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/article',
+                type: 'get',
+                data: "id=" + artId,
+                success: function (bd) {
+                    if (bd.code == 200) {
+                        console.log(bd);
+                        $('.article_title').text(bd.data.title);
+                        $('.article_con').html(bd.data.content);
+                        $('.breadcrumb').children('a').eq(1).text(bd.data.category);
+                        var resHtml = template('info', bd);
+                        $('.article_info').html(resHtml);
+                        /* 上一页下一页 */
+                        if (bd.data.prev.title == null) {
+                            $('.article_links').children('a').eq(0).text("没有上一篇");
+                        } else {
+                            $('.article_links').children('a').eq(0).text(bd.data.prev.title);
+                            $('.article_links').children('a').eq(0).attr('href', "./article.html?id=" + bd.data.prev.id);
+                        }
+                        if (bd.data.next.title == null) {
+                            $('.article_links').children('a').eq(1).text("没有下一篇");
+                        } else {
+                            $('.article_links').children('a').eq(1).text(bd.data.next.title);
+                            $('.article_links').children('a').eq(1).attr('href', "./article.html?id=" + bd.data.next.id);
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

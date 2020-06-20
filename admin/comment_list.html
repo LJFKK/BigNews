@@ -12,6 +12,9 @@
   <link rel="stylesheet" href="css/main.css">
   <script src="./libs/jquery-1.12.4.min.js"></script>
   <script src="./libs/template-web.js"></script>
+  <!-- 分页插件 -->
+  <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+  <script src="./libs/jquery.twbsPagination.js"></script>
 </head>
 
 <body>
@@ -142,7 +145,7 @@
         </tbody>
       </table>
       <div class="row text-center">
-        <ul class="pagination pagination-sm">
+        <!-- <ul class="pagination pagination-sm">
           <li class="page-item first disabled"><a href="#" class="page-link">首页</a></li>
           <li class="page-item prev disabled"><a href="#" class="page-link">上一页</a></li>
           <li class="page-item active"><a href="#" class="page-link">1</a></li>
@@ -154,12 +157,156 @@
           <li class="page-item"><a href="#" class="page-link">7</a></li>
           <li class="page-item next"><a href="#" class="page-link">下一页</a></li>
           <li class="page-item last"><a href="#" class="page-link">尾页</a></li>
-        </ul>
-        <ul id="pagination" class="pagination-sm"></ul>
+        </ul> -->
+        <ul class="pagination" id="pagination"></ul>
+        <p style="display:none;">没有数据</p>
       </div>
 
     </div>
   </div>
 </body>
+<!-- 评论模板 -->
+<script id="commlist" type="text/html">
+  {{each data.data v}}  
+   {{if v.state=="待审核"}}
+      <tr class="danger">
+    {{else}}
+      <tr>
+    {{/if}}
+    <td>{{v.author}}</td>
+    <td>{{v.content}}</td>
+    <td>《{{v.title}}》</td>
+    <td>{{v.date}}</td>
+    <td>{{v.state}}</td>
+    <td class="text-center" data-id="{{v.id}}">
+      {{if v.state=="已拒绝"}}
+          <a href="javascript:void(0);;" class="btn btn-danger btn-xs deleteA">删除</a>
+      {{else if v.state=="已通过"}}
+      <a href="javascript:void(0);;" class="btn btn-warning btn-xs refuseA">拒绝</a>
+      <a href="javascript:void(0);;" class="btn btn-danger btn-xs deleteA">删除</a>
+      {{else if v.state=="待审核"}}  
+      <a href="javascript:void(0);;" class="btn btn-info btn-xs approveA">批准</a>
+      <a href="javascript:void(0);;" class="btn btn-danger btn-xs deleteA">删除</a>
+      {{/if}}
+    </td>
+  </tr>
+  {{/each}}
+</script>
+<script src="./js/http.js"></script>
+<script>
+  $(function () {
+    //页面加载默认加载所有评论
+    var cp = 1; // 当前页
+    function getComm(page, callback) {
+      $.ajax({
+        url: BigNew.comment_list,
+        type: 'get',
+        data: {
+          page: cp,
+          perpage: 6
+        },
+        success: function (bd) {
+          console.log(bd);
+          if (bd.code == 200) {
+            var resHtml = template('commlist', bd);
+            $("tbody").html(resHtml);
+            //根据当前页和callback函数以及bd的数据来判断需要做什么事
+            /* 
+            1 啥都不做,↑只渲染模板加载第n页数据
+            2 查询并执行回调函数(页面加载渲染分页插件) 回调函数和查询到的数据不为空
+            3 所有评论都删完了,显示没有评论 (删除后调用时,当前页第一页,并且第一页的查询的data没有数据,则表示一条评论都没有)
+                
+            4 删除后少了一页 , 全局变量页面-1等于查询到的totalpage ,更新全局页数
+             */
+            if (callback != null && bd.data.data.length != 0) {
+              //显示分页插件,隐藏p标签
+              $('#pagination').show().next().hide();
+              callback(bd.data.totalPage);
+            } else if (cp == 1 && bd.data.data.length == 0) {
+              //隐藏分页插件,显示p标签
+              $('#pagination').hide().next().show();
+            } else if (cp - 1 == bd.data.totalPage) {
+              //重新渲染分页插件并更新总页数
+              alert(cp);
+              cp -= 1;
+              $('#pagination').twbsPagination('changeTotalPages', bd.data.totalPage, cp);
+            }
+
+          }
+        }
+      });
+    };
+    //加载页面数据并且渲染分页插件
+    getComm(1, function (totalPgae) {
+      //文章第一次加载,渲染分页插件
+      $('#pagination').twbsPagination({
+        first: '第一页',
+        next: '下一页',
+        prev: '上一页',
+        last: '尾页',
+        startPage: 1,
+        totalPages: totalPgae,
+        visiblePages: 9,
+        onPageClick: function (event, page) {
+          console.log(page);
+          cp = page;
+          getComm(page, null);
+        }
+      });
+    });
+
+    //通过事件委托注册 deleteA 删除评论 refuseA 拒绝评论 approveA 批准评论
+    $('tbody').on('click', '.text-center', function (e) {
+      console.log($(e.target).hasClass('deleteA'));
+      var id = $(this).data('id');
+      if ($(e.target).hasClass('deleteA')) {
+        if (!confirm("确认删除?")) {
+          return;
+        }
+        $.ajax({
+          type: 'post',
+          url: BigNew.comment_delete,
+          data: { id: id },
+          success: function (bd) {
+            // console.log(bd);
+            if (bd.code == 200) {
+              alert("已删除");
+              getComm(cp, function (tpg) {
+                $('#pagination').twbsPagination('changeTotalPages', tpg, cp);
+              });
+            }
+          }
+        });
+      } else if ($(e.target).hasClass('refuseA')) {
+        $.ajax({
+          type: 'post',
+          url: BigNew.comment_reject,
+          data: { id: id },
+          success: function (bd) {
+            // console.log(bd);
+            if (bd.code == 200) {
+              alert("已拒绝");
+              getComm(cp, null);
+            }
+          }
+        });
+      } else if ($(e.target).hasClass('approveA')) {
+        $.ajax({
+          type: 'post',
+          url: BigNew.comment_pass,
+          data: { id: id },
+          success: function (bd) {
+            // console.log(bd);
+            if (bd.code == 200) {
+              alert("已通过");
+              getComm(cp, null);
+            }
+          }
+        });
+      }
+    })
+
+  });
+</script>
 
 </html>
